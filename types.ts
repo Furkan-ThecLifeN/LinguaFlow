@@ -1,3 +1,4 @@
+
 export interface Word {
   id: string;
   text: string;
@@ -13,6 +14,7 @@ export interface Word {
     tr: string;
   };
   difficulty: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  createdAt: number; // Timestamp for dashboard charts
 }
 
 export interface Example {
@@ -45,10 +47,20 @@ export interface UserProgress {
   nextReviewDate: number;
 }
 
+export interface UserStats {
+  totalStudyTimeMinutes: number;
+  wordsLearned: number;
+  songsListened: number;
+  lastLoginDate: string;
+}
+
 export interface UserProfile {
+  id: string; // Unique ID for local storage key
   name: string;
   email: string;
+  password?: string; // For local auth simulation
   avatarUrl: string;
+  stats: UserStats;
 }
 
 export enum GameType {

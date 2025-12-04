@@ -1,14 +1,15 @@
+
 import React, { useState } from 'react';
-import { User, Mail, Lock, Camera, Check, Save } from 'lucide-react';
+import { User, Mail, Lock, Camera, Check, Save, LogOut } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 const Profile: React.FC = () => {
-  const { user, updateUser } = useData();
+  const { user, updateUser, logout } = useData();
   const [formData, setFormData] = useState({
     name: user.name,
     email: user.email,
-    password: '',
-    confirmPassword: ''
+    password: user.password || '',
+    confirmPassword: user.password || ''
   });
   const [isSaved, setIsSaved] = useState(false);
 
@@ -21,7 +22,8 @@ const Profile: React.FC = () => {
     
     updateUser({
       name: formData.name,
-      email: formData.email
+      email: formData.email,
+      password: formData.password
     });
     
     setIsSaved(true);
@@ -45,6 +47,12 @@ const Profile: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-800">{user.name}</h2>
             <p className="text-gray-500">Free Account</p>
           </div>
+          <button 
+             onClick={logout}
+             className="flex items-center gap-2 text-red-500 font-medium hover:bg-red-50 px-4 py-2 rounded-lg transition"
+          >
+             <LogOut size={18} /> Logout
+          </button>
         </div>
 
         {/* Form Section */}

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Filter, Plus, Volume2, X } from 'lucide-react';
 import { Word } from '../types';
@@ -46,7 +47,8 @@ const Vocabulary: React.FC = () => {
       difficulty: (newWord.difficulty as any) || 'A1',
       translations: { tr: newWord.translations?.tr || '' },
       examples: newWord.examples?.map(ex => ({ ...ex, id: Date.now().toString() + Math.random() })) || [],
-      forms: { past: '', pastParticiple: '' }
+      forms: { past: '', pastParticiple: '' },
+      createdAt: Date.now() // Timestamp needed for dashboard
     };
 
     addWord(wordToAdd);

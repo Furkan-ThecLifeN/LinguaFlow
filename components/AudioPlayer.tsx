@@ -1,6 +1,7 @@
+
 import React, { useRef, useState, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Repeat, Volume2, Info } from 'lucide-react';
-import { Song, LyricLine } from '../types';
+import { Play, Pause, SkipBack, SkipForward, Repeat, Volume2 } from 'lucide-react';
+import { Song } from '../types';
 
 interface AudioPlayerProps {
   song: Song;
@@ -40,7 +41,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ song, onWordClick }) => {
     );
     if (currentLine && currentLine.id !== activeLineId) {
       setActiveLineId(currentLine.id);
-      // Auto-scroll logic could go here
       const el = document.getElementById(`lyric-${currentLine.id}`);
       el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -74,7 +74,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ song, onWordClick }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row max-h-[600px]">
-      <audio ref={audioRef} src={song.audioUrl} />
+      <audio ref={audioRef} src={song.audioUrl} autoPlay />
 
       {/* Left Panel: Cover & Controls */}
       <div className="md:w-1/3 bg-slate-900 text-white p-6 flex flex-col justify-between relative">
@@ -128,42 +128,38 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ song, onWordClick }) => {
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             Sync Lyrics
           </h3>
-          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Click words to translate</span>
+          {/* Removed translation hint as requested */}
         </div>
         
         <div className="flex-1 overflow-y-auto p-8 space-y-6 text-center md:text-left scroll-smooth">
-          {song.lyrics.map((line) => (
-            <div
-              key={line.id}
-              id={`lyric-${line.id}`}
-              className={`transition-all duration-500 p-4 rounded-xl cursor-pointer ${
-                activeLineId === line.id
-                  ? 'bg-white shadow-lg scale-105 border-l-4 border-indigo-500'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-              onClick={() => {
-                if(audioRef.current) {
-                   audioRef.current.currentTime = line.startSec;
-                   setCurrentTime(line.startSec);
-                }
-              }}
-            >
-              <p className={`text-lg md:text-xl font-medium leading-relaxed ${activeLineId === line.id ? 'text-gray-800' : ''}`}>
-                {line.text.split(' ').map((word, idx) => (
-                  <span
-                    key={idx}
-                    className="hover:text-indigo-600 hover:underline px-0.5"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent line seek
-                      onWordClick(word.replace(/[^a-zA-Z]/g, ''));
-                    }}
-                  >
-                    {word}
-                  </span>
-                ))}
-              </p>
-            </div>
-          ))}
+          {song.lyrics.length > 0 ? (
+            song.lyrics.map((line) => (
+              <div
+                key={line.id}
+                id={`lyric-${line.id}`}
+                className={`transition-all duration-500 p-4 rounded-xl cursor-pointer ${
+                  activeLineId === line.id
+                    ? 'bg-white shadow-lg scale-105 border-l-4 border-indigo-500'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+                onClick={() => {
+                  if(audioRef.current) {
+                     audioRef.current.currentTime = line.startSec;
+                     setCurrentTime(line.startSec);
+                  }
+                }}
+              >
+                <p className={`text-lg md:text-xl font-medium leading-relaxed ${activeLineId === line.id ? 'text-gray-800' : ''}`}>
+                  {line.text}
+                </p>
+              </div>
+            ))
+          ) : (
+             <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                <p>No synced lyrics available.</p>
+                <p className="text-sm">Enjoy the music!</p>
+             </div>
+          )}
           <div className="h-24"></div> {/* Bottom spacer */}
         </div>
       </div>
