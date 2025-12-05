@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 
 const Auth: React.FC = () => {
-  const { login, register } = useData();
+  const { login, register, isLoading: isAuthLoading } = useData();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -12,23 +11,47 @@ const Auth: React.FC = () => {
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (isLogin) {
-      const success = login(formData.email, formData.password);
-      if (!success) setError('Invalid email or password.');
-    } else {
-      if (!formData.name || !formData.email || !formData.password) {
-        setError('All fields are required.');
-        return;
-      }
-      const success = register(formData.name, formData.email, formData.password);
-      if (!success) setError('Email already exists.');
+    try {
+        if (isLogin) {
+            await login(formData.email, formData.password);
+        } else {
+            if (!formData.name || !formData.email || !formData.password) {
+                throw new Error('All fields are required.');
+            }
+            await register(formData.name, formData.email, formData.password);
+        }
+    } catch (err: any) {
+        console.error(err);
+        let msg = "An error occurred.";
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+            msg = "Invalid email or password.";
+        } else if (err.code === 'auth/email-already-in-use') {
+            msg = "Email is already registered.";
+        } else if (err.code === 'auth/weak-password') {
+            msg = "Password should be at least 6 characters.";
+        } else if (err.message) {
+            msg = err.message;
+        }
+        setError(msg);
+        setLoading(false);
     }
   };
+
+  // If the app is initializing auth state, show a full screen loader
+  if (isAuthLoading) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+              <Loader2 className="animate-spin text-indigo-600" size={48} />
+          </div>
+      )
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 font-sans">
@@ -84,6 +107,7 @@ const Auth: React.FC = () => {
                     onChange={e => setFormData({...formData, name: e.target.value})}
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
                     placeholder="John Doe"
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -99,6 +123,7 @@ const Auth: React.FC = () => {
                   onChange={e => setFormData({...formData, email: e.target.value})}
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
                   placeholder="john@example.com"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -113,21 +138,25 @@ const Auth: React.FC = () => {
                   onChange={e => setFormData({...formData, password: e.target.value})}
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
                   placeholder="••••••••"
+                  disabled={loading}
                 />
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 animate-fade-in">
                 {error}
               </div>
             )}
 
             <button 
               type="submit" 
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 transition transform active:scale-95 flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 transition transform active:scale-95 flex items-center justify-center gap-2"
             >
-              {isLogin ? 'Sign In' : 'Sign Up'} <ArrowRight size={20} />
+              {loading ? <Loader2 className="animate-spin" size={20} /> : (
+                <> {isLogin ? 'Sign In' : 'Sign Up'} <ArrowRight size={20} /> </>
+              )}
             </button>
           </form>
 
@@ -137,6 +166,7 @@ const Auth: React.FC = () => {
               <button 
                 onClick={() => { setIsLogin(!isLogin); setError(''); }}
                 className="text-indigo-600 font-bold hover:underline"
+                disabled={loading}
               >
                 {isLogin ? 'Register' : 'Login'}
               </button>
